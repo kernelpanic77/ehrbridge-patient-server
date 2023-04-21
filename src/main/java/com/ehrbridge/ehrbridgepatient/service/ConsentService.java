@@ -12,11 +12,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.ehrbridge.ehrbridgepatient.dto.consent.ConsentObject;
+import com.ehrbridge.ehrbridgepatient.dto.consent.ConsentPermission;
 import com.ehrbridge.ehrbridgepatient.dto.consent.ConsentRequest;
 import com.ehrbridge.ehrbridgepatient.dto.consent.ConsentResponse;
+import com.ehrbridge.ehrbridgepatient.dto.consent.DateRange;
 import com.ehrbridge.ehrbridgepatient.dto.consent.FetchConsentResponse;
 import com.ehrbridge.ehrbridgepatient.dto.consent.NotifyConsentRequest;
 import com.ehrbridge.ehrbridgepatient.dto.consent.NotifyConsentResponse;
+import com.ehrbridge.ehrbridgepatient.dto.consent.RequestDetails;
 import com.ehrbridge.ehrbridgepatient.entity.ConsentReqs;
 import com.ehrbridge.ehrbridgepatient.repository.ConsentRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -87,37 +91,48 @@ public class ConsentService {
         Optional<ConsentReqs> consentReq = null;
         try {
            consentReq  = consentRepository.findById(request.getTxnID());
-           System.out.print(consentReq);
         } catch (Exception e) {
             // TODO: handle exception
             return new ResponseEntity<NotifyConsentResponse>(HttpStatusCode.valueOf(500));
         }
         if(consentReq.isPresent()){
-            consentReq.get().setConsent_status("GRANTED");
+            consentReq.get().setConsent_status(request.getConsent_status());
+            ConsentRequest consentCMObj = constructConsentJson(consentReq.get());
             try {
                 String CM_CALLBACK = consentReq.get().getCallback_url();
             // send request to CM
                 ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();   
-                String jsonConsentObj = ow.writeValueAsString(consentReq.get());
+                String jsonConsentObj = ow.writeValueAsString(consentCMObj);
                 HttpEntity<String> requestEntity = new HttpEntity<String>(jsonConsentObj, headers);
                 System.out.println(requestEntity.getHeaders());
                 ResponseEntity<Object> responseEntity = rest.exchange(CM_CALLBACK, HttpMethod.POST, requestEntity, Object.class);
                 System.out.println(responseEntity.getStatusCode());
-                if(responseEntity.getStatusCode().value() != 200){
-                    return new ResponseEntity<NotifyConsentResponse>(NotifyConsentResponse.builder().message("Could not send consent callback to CM").build(), HttpStatusCode.valueOf(501));
+                if(responseEntity.getStatusCode().value() == 200){
+                    consentRepository.save(consentReq.get());
+                    return new ResponseEntity<NotifyConsentResponse>(NotifyConsentResponse.builder().message("Sent Consent Callback to CM").build(), HttpStatusCode.valueOf(501));
                 }
             } catch (Exception e) {
                 // TODO: handle exception
             }
             
             // save the status to the database
-            consentRepository.save(consentReq.get());
         }
-        return new ResponseEntity<NotifyConsentResponse>(NotifyConsentResponse.builder().message("Could not find consent callback URL in DB").build(), HttpStatusCode.valueOf(401));
+        return new ResponseEntity<NotifyConsentResponse>(NotifyConsentResponse.builder().message("Could not send update on consent callback URL").build(), HttpStatusCode.valueOf(401));
     }
 
     public ResponseEntity<String> revokeConsent(String txnID){
         // update database with revoked status
+        Optional<ConsentReqs> consentReq = null;
+        try {
+           consentReq  = consentRepository.findById(txnID);
+           if(consentReq.isPresent()){
+            consentReq.get().setConsent_status("REVOKED");
+            consentRepository.save(consentReq.get());
+           }
+        } catch (Exception e) {
+            // TODO: handle exception
+            return new ResponseEntity<String>(HttpStatusCode.valueOf(500));
+        }
         // send request to gateway with revoked status
         try {
             
@@ -125,6 +140,41 @@ public class ConsentService {
             // TODO: handle exception
         }
         return new ResponseEntity<String>("Could not send revoke request to gateway", HttpStatusCode.valueOf(501));
+    }
+
+    private ConsentRequest constructConsentJson(ConsentReqs consent){
+        DateRange range = DateRange.builder()
+                                   .from(consent.getDate_from())
+                                   .to(consent.getDate_to())
+                                   .build();
+        
+        ConsentPermission consentPermission = ConsentPermission.builder()
+                                                               .consent_validity(consent.getConsent_validity())
+                                                               .dateRange(range)
+                                                            .build();
+        
+        ConsentObject consentObject = ConsentObject.builder()
+                                                   .hiuID(consent.getHiuID())
+                                                   .hipID(consent.getHipID())
+                                                   .hiType(consent.getHiType())
+                                                   .departments(consent.getDepartments())
+                                                   .consentID(consent.getConsentID())
+                                                   .consent_status(consent.getConsent_status())
+                                                   .consentDescription(consent.getConsentDescription())
+                                                   .doctorID(consent.getDoctorID())
+                                                   .permission(consentPermission)
+                                                   .build();
+        
+        RequestDetails details = RequestDetails.builder()
+                                               .doctorName(consent.getDoctorName())
+                                               .hipName(consent.getHipName())
+                                               .hiuName(consent.getHiuName())
+                                               .build();                                           
+        return ConsentRequest.builder()
+                             .txnID(consent.getTxnID())
+                             .consent_obj(consentObject)
+                             .request_details(details)
+                             .build();
     }
     
 }

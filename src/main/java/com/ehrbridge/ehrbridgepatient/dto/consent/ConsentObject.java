@@ -1,6 +1,7 @@
 package com.ehrbridge.ehrbridgepatient.dto.consent;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ConsentObject {
     public String consentID;
     public String ehrbID;
