@@ -109,7 +109,7 @@ public class ConsentService {
                 System.out.println(responseEntity.getStatusCode());
                 if(responseEntity.getStatusCode().value() == 200){
                     consentRepository.save(consentReq.get());
-                    return new ResponseEntity<NotifyConsentResponse>(NotifyConsentResponse.builder().message("Sent Consent Callback to CM").build(), HttpStatusCode.valueOf(501));
+                    return new ResponseEntity<NotifyConsentResponse>(NotifyConsentResponse.builder().message("Sent Consent Callback to CM").build(), HttpStatusCode.valueOf(200));
                 }
             } catch (Exception e) {
                 // TODO: handle exception
@@ -163,6 +163,7 @@ public class ConsentService {
                                                    .consentDescription(consent.getConsentDescription())
                                                    .doctorID(consent.getDoctorID())
                                                    .permission(consentPermission)
+                                                   .ehrbID(consent.getEhrbID())
                                                    .build();
         
         RequestDetails details = RequestDetails.builder()
