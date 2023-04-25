@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class LoginResponse {
     public String token;
     public String message;
+    public String ehrbID;
 }

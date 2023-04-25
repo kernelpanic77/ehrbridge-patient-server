@@ -3,15 +3,20 @@ package com.ehrbridge.ehrbridgepatient.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ehrbridge.ehrbridgepatient.dto.User.LoginRequest;
 import com.ehrbridge.ehrbridgepatient.dto.User.LoginResponse;
 import com.ehrbridge.ehrbridgepatient.dto.User.RegisterRequest;
 import com.ehrbridge.ehrbridgepatient.dto.User.RegisterResponse;
+import com.ehrbridge.ehrbridgepatient.dto.User.PatientByIDResponse;
+import com.ehrbridge.ehrbridgepatient.entity.User;
+
 import com.ehrbridge.ehrbridgepatient.service.UserService;
 
 import lombok.AllArgsConstructor;
@@ -35,6 +40,11 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginRequest request){
         return userService.login(request);
+    }
+
+    @GetMapping("/get-by-ehrb")
+    public ResponseEntity<PatientByIDResponse> getPatientByEHRBID(@RequestParam String ehrbID) {
+        return userService.getByID(ehrbID);
     }
 
 }
