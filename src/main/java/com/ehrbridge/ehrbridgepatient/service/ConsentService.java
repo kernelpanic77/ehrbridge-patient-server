@@ -20,6 +20,7 @@ import com.ehrbridge.ehrbridgepatient.dto.consent.DateRange;
 import com.ehrbridge.ehrbridgepatient.dto.consent.FetchConsentResponse;
 import com.ehrbridge.ehrbridgepatient.dto.consent.NotifyConsentRequest;
 import com.ehrbridge.ehrbridgepatient.dto.consent.NotifyConsentResponse;
+import com.ehrbridge.ehrbridgepatient.dto.consent.GetConsentReqResponse;
 import com.ehrbridge.ehrbridgepatient.dto.consent.RequestDetails;
 import com.ehrbridge.ehrbridgepatient.entity.ConsentReqs;
 import com.ehrbridge.ehrbridgepatient.repository.ConsentRepository;
@@ -176,6 +177,36 @@ public class ConsentService {
                              .consent_obj(consentObject)
                              .request_details(details)
                              .build();
+    }
+
+    public ResponseEntity<GetConsentReqResponse> getConsentReq(String txnID) {
+        List<ConsentReqs> consentRequests = consentRepository.findAll();
+        GetConsentReqResponse response = null;
+        for (ConsentReqs consentRequest : consentRequests) {
+            if(consentRequest.getTxnID().equals(txnID)) {
+                response = GetConsentReqResponse.builder()
+                                .txnID(consentRequest.getTxnID())
+                                .hiuName(consentRequest.getHiuName())
+                                .hipName(consentRequest.getHipName())
+                                .doctorName(consentRequest.getDoctorName())
+                                .consentID(consentRequest.getConsentID())
+                                .ehrbID(consentRequest.getEhrbID())
+                                .hiuID(consentRequest.getHiuID())
+                                .hipID(consentRequest.getHipID())
+                                .doctorID(consentRequest.getDoctorID())
+                                .hiType(consentRequest.getHiType())
+                                .departments(consentRequest.getDepartments())
+                                .consentDescription(consentRequest.getConsentDescription())
+                                .consent_status(consentRequest.getConsent_status())
+                                .consent_validity(consentRequest.getConsent_validity())
+                                .date_from(consentRequest.getDate_from())
+                                .date_to(consentRequest.getDate_to())
+                                .callback_url(consentRequest.getCallback_url())
+                                .build();
+                break;
+            }
+        }
+        return new ResponseEntity<GetConsentReqResponse>(response, HttpStatusCode.valueOf(200));
     }
     
 }
