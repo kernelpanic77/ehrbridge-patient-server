@@ -15,6 +15,7 @@ import com.ehrbridge.ehrbridgepatient.dto.consent.ConsentResponse;
 import com.ehrbridge.ehrbridgepatient.dto.consent.FetchConsentResponse;
 import com.ehrbridge.ehrbridgepatient.dto.consent.NotifyConsentRequest;
 import com.ehrbridge.ehrbridgepatient.dto.consent.NotifyConsentResponse;
+import com.ehrbridge.ehrbridgepatient.dto.consent.GetConsentReqResponse;
 import com.ehrbridge.ehrbridgepatient.entity.ConsentReqs;
 import com.ehrbridge.ehrbridgepatient.repository.ConsentRepository;
 import com.ehrbridge.ehrbridgepatient.service.ConsentService;
@@ -49,4 +50,10 @@ public class ConsentController {
     public ResponseEntity<String> revokeConsent(@RequestParam String txnID){
         return consentService.revokeConsent(txnID);
     }
+
+    @GetMapping("get-by-txn")
+    public ResponseEntity<GetConsentReqResponse> getConsentReqByTxn(@RequestParam String txnID) {
+        return consentService.getConsentReq(txnID);
+    }
+
 }
