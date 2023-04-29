@@ -97,6 +97,12 @@ public class ConsentService {
         }
         if(consentReq.isPresent()){
             consentReq.get().setConsent_status(request.getConsent_status());
+            consentReq.get().setDepartments(request.getDepartments());
+            consentReq.get().setHiType(request.getHiType());
+            consentReq.get().setDate_from(request.getDate_from());
+            consentReq.get().setDate_to(request.getDate_to());
+            consentReq.get().setConsent_validity(request.getConsent_validity());
+            
             ConsentRequest consentCMObj = constructConsentJson(consentReq.get());
             try {
                 String CM_CALLBACK = consentReq.get().getCallback_url();
